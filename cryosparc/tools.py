@@ -71,7 +71,7 @@ class CryoSPARC:
     High-level session class for interfacing with a CryoSPARC instance.
 
     Initialize with the host and base port of the running CryoSPARC instance.
-    This host and (at minimum) ``base_port + 2``, ``base_port + 2`` and ``base_port + 5`` should be
+    This host and (at minimum) ``base_port + 2`` and ``base_port + 3`` should be
     accessible on the network.
 
     Args:
@@ -91,7 +91,6 @@ class CryoSPARC:
     Attributes:
         cli (CommandClient): HTTP/JSONRPC client for ``command_core`` service (port + 2).
         vis (CommandClient): HTTP/JSONRPC client for ``command_vis`` service (port + 3).
-        rtp (CommandClient): HTTP/JSONRPC client for ``command_rtp`` service (port + 5).
         user_id (str): Mongo object ID of user account performing operations for this session.
 
     Examples:
@@ -126,7 +125,6 @@ class CryoSPARC:
 
     cli: CommandClient
     vis: CommandClient
-    rtp: CommandClient
     user_id: str  # session user ID
 
     def __init__(
@@ -147,9 +145,6 @@ class CryoSPARC:
         )
         self.vis = CommandClient(
             service="command_vis", host=host, port=base_port + 3, headers={"License-ID": license}, timeout=timeout
-        )
-        self.rtp = CommandClient(
-            service="command_rtp", host=host, port=base_port + 5, headers={"License-ID": license}, timeout=timeout
         )
         try:
             self.user_id = self.cli.get_id_by_email_password(email, password)  # type: ignore
@@ -174,13 +169,6 @@ class CryoSPARC:
                 print(f"Connection succeeded to CryoSPARC command_vis at {self.vis._url}")
             else:
                 print(f"Connection FAILED to CryoSPARC command_vis at {self.vis._url}")
-                return False
-        
-        with make_request(self.rtp, method="get") as response:
-            if response.read():
-                print(f"Connection succeeded to CryoSPARC command_rtp at {self.rtp._url}")
-            else:
-                print(f"Connection FAILED to CryoSPARC command_rtp at {self.rtp._url}")
                 return False
 
         return True
